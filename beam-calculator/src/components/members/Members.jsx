@@ -1,9 +1,12 @@
 import { useState } from "react";
 
-export default function Members() {
+export default function Members({ beam, setBeam }) {
   const [beamLength, setBeamLength] = useState(false);
   function handleSubmit(e) {
     e.preventDefault();
+    setBeam(beam);
+    setBeamLength(false);
+    console.log(beam);
   }
   return (
     <div className="relative">
@@ -20,8 +23,10 @@ export default function Members() {
         <form className="absolute" onSubmit={handleSubmit}>
           <div className="relative">
             <input
+              onChange={(e) => setBeam(e.target.value)}
               className="py-2 px-4 border-2 border-[#444242] outline-none rounded-lg"
-              type="number"
+              type="text"
+              value={beam}
               name="beam length"
             />
             <span className="absolute top-2 right-2 font-bold">M</span>
@@ -33,7 +38,9 @@ export default function Members() {
             >
               Cancel
             </button>
-            <button className="py-2 px-4">Ok</button>
+            <button className="py-2 px-4" type="submit">
+              Ok
+            </button>
           </div>
         </form>
       )}
