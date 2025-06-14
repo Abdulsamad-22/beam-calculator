@@ -8,10 +8,12 @@ import BeamDiagram from "./components/diagram/BeamDiagram";
 function App() {
   const [beam, setBeam] = useState("");
   const [loadValue, setLoadValue] = useState("");
-  const [selectedSupport, setSelectedSupport] = useState("");
   const [placeSupport, setPlaceSupport] = useState(false);
   const [position, setPosition] = useState("");
   const [supportsList, setSupportsList] = useState([]);
+  const [loadList, setLoadList] = useState([]);
+  const [loadPosition, setLoadPosition] = useState("");
+  const [placeLoad, setPlaceLoad] = useState(false);
 
   function momentCalculation() {
     const v = loadValue / 2;
@@ -21,7 +23,6 @@ function App() {
     return { v, M };
     setBeam("");
     setLoadValue("");
-    setSelectedSupport("");
   }
   return (
     <div className="App">
@@ -30,14 +31,19 @@ function App() {
         <Supports
           supportsList={supportsList}
           setSupportsList={setSupportsList}
-          setSelectedSupport={setSelectedSupport}
-          selectedSupport={selectedSupport}
           setPlaceSupport={setPlaceSupport}
           placeSupport={placeSupport}
           position={position}
           setPosition={setPosition}
         />
-        <Loads loadValue={loadValue} setLoadValue={setLoadValue} />
+        <Loads
+          loadValue={loadValue}
+          setLoadValue={setLoadValue}
+          setLoadPosition={setLoadPosition}
+          loadPosition={loadPosition}
+          setLoadList={setLoadList}
+          setPlaceLoad={setPlaceLoad}
+        />
         <Members beam={beam} setBeam={setBeam} />
       </div>
       <button
@@ -48,14 +54,17 @@ function App() {
       </button>
       <div className="flex flex-col items-center justify-center mt-10">
         <BeamDiagram
+          loadList={loadList}
+          setLoadList={setLoadList}
           supportsList={supportsList}
           setSupportsList={setSupportsList}
-          setSelectedSupport={setSelectedSupport}
-          selectedSupport={selectedSupport}
           setPlaceSupport={setPlaceSupport}
           placeSupport={placeSupport}
           position={position}
           setPosition={setPosition}
+          setLoadPosition={setLoadPosition}
+          loadPosition={loadPosition}
+          placeLoad={placeLoad}
         />
       </div>
     </div>

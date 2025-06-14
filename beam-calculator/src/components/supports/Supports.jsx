@@ -7,8 +7,6 @@ const support = [
 ];
 
 export default function Supports({
-  setSelectedSupport,
-  selectedSupport,
   setPlaceSupport,
   placeSupport,
   setPosition,
@@ -17,6 +15,7 @@ export default function Supports({
   setSupportsList,
 }) {
   const [supports, setSupports] = useState(false);
+  const [selectedSupport, setSelectedSupport] = useState("");
 
   function handlePosition(e) {
     e.preventDefault();
@@ -38,9 +37,6 @@ export default function Supports({
 
   function handleSupport(src) {
     setSupports(true);
-    if (position === "") {
-      setSelectedSupport("");
-    }
 
     setPosition("");
     setSelectedSupport(src);

@@ -1,23 +1,57 @@
 import { useState } from "react";
 
-export default function Loads({ loadValue, setLoadValue }) {
+const loadType = ["/images/Point-load.svg", "/images/udl.svg"];
+export default function Loads({
+  loadValue,
+  setLoadValue,
+  setLoadPosition,
+  loadPosition,
+  setLoadList,
+  setPlaceLoad,
+}) {
   const [loads, setLoads] = useState(false);
-  const [loadPosition, setLoadPosition] = useState("");
+  const [selectedLoad, setSelectedLoad] = useState(null);
 
   function handleLoad(e) {
     e.preventDefault();
-    setLoadValue(loadValue);
+    console.log(loadPosition);
+
+    if (loadValue === "" || loadPosition === "") return;
+
+    const newLoad = {
+      pointLoad: selectedLoad,
+      position: parseFloat(loadPosition),
+      loadValue: loadValue,
+    };
+
+    setLoadList((prev) => [...prev, newLoad]);
     setLoads(false);
+    console.log(loadValue);
+    setLoadValue("");
+    setLoadPosition("");
+    setPlaceLoad(true);
+  }
+
+  function handleLoading(src) {
+    setLoads(!loads);
+    setSelectedLoad(src);
   }
   return (
     <div className="relative">
       <h2 className="text-[#444242] text-[1.25rem]">Loading</h2>
-      <span
-        onClick={() => setLoads(!loads)}
-        className="text-2xl cursor-pointer"
-      >
-        &#x25BC;
-      </span>
+
+      <div className="flex items-center space-x-4">
+        {loadType.map((load, index) => (
+          <div
+            key={index}
+            onClick={() => handleLoading(load)}
+            className="cursor-pointer"
+          >
+            <img className="h-10" src={load} alt="" />
+          </div>
+        ))}
+      </div>
+
       {loads !== false && (
         <form className="absolute" onSubmit={handleLoad}>
           <div className="flex flex-col items-start relative">
