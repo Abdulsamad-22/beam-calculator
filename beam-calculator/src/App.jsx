@@ -4,6 +4,7 @@ import Loads from "./components/loads/Loads";
 import Members from "./components/members/Members";
 import Supports from "./components/supports/Supports";
 import BeamDiagram from "./components/diagram/BeamDiagram";
+import CalculationResult from "./components/calculations/CalculationResult";
 
 function App() {
   const [beam, setBeam] = useState("");
@@ -14,10 +15,17 @@ function App() {
   const [loadList, setLoadList] = useState([]);
   const [loadPosition, setLoadPosition] = useState("");
   const [placeLoad, setPlaceLoad] = useState(false);
+  const [loadLength, setLoadLength] = useState("");
+  const [drawBeam, setDrawBeam] = useState(false);
+
+  const totalLoad = loadList.reduce(
+    (acc, load) => acc + Number(load.loadValue),
+    0
+  );
 
   function momentCalculation() {
-    const v = loadValue / 2;
-    const M = (loadValue * beam) / 8;
+    const v = totalLoad / 2;
+    const M = (totalLoad * beam) / 8;
     console.log("Shear force", v);
     console.log("moment", M);
     return { v, M };
@@ -32,9 +40,10 @@ function App() {
           supportsList={supportsList}
           setSupportsList={setSupportsList}
           setPlaceSupport={setPlaceSupport}
-          placeSupport={placeSupport}
           position={position}
           setPosition={setPosition}
+          beam={beam}
+          setBeam={setBeam}
         />
         <Loads
           loadValue={loadValue}
@@ -43,8 +52,11 @@ function App() {
           loadPosition={loadPosition}
           setLoadList={setLoadList}
           setPlaceLoad={setPlaceLoad}
+          loadLength={loadLength}
+          setLoadLength={setLoadLength}
+          beam={beam}
         />
-        <Members beam={beam} setBeam={setBeam} />
+        <Members beam={beam} setBeam={setBeam} setDrawBeam={setDrawBeam} />
       </div>
       <button
         className="p-4 bg-[#4E66FF] text-[#fff] mt-4 rounded-lg"
@@ -55,18 +67,13 @@ function App() {
       <div className="flex flex-col items-center justify-center mt-10">
         <BeamDiagram
           loadList={loadList}
-          setLoadList={setLoadList}
           supportsList={supportsList}
-          setSupportsList={setSupportsList}
-          setPlaceSupport={setPlaceSupport}
-          placeSupport={placeSupport}
           position={position}
-          setPosition={setPosition}
-          setLoadPosition={setLoadPosition}
-          loadPosition={loadPosition}
-          placeLoad={placeLoad}
+          beam={beam}
+          drawBeam={drawBeam}
         />
       </div>
+      <CalculationResult loadList={loadList} beam={beam} />
     </div>
   );
 }

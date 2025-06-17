@@ -1,36 +1,48 @@
 export default function BeamDiagram({
   position,
-  sePlaceSupport,
-  placeSupport,
   supportsList,
   loadList,
-  loadPosition,
-  placeLoad,
+  beam,
+  drawBeam,
 }) {
-  console.log(position);
-  const totalLoad = loadList.reduce((acc, load) => acc + load.loadValue, 0);
-  console.log(totalLoad);
+  const totalLoad = loadList.reduce(
+    (acc, load) => acc + Number(load.loadValue),
+    0
+  );
+  console.log(parseFloat((totalLoad * beam) / 8));
+  console.log("Total Load", totalLoad);
+
   return (
     <div className="relative w-[50%]">
-      <hr className="border-2 border-[#c4c4c4] rounded-lg mt-4 " />
+      {drawBeam === true && (
+        <hr className="border-2 border-[#c4c4c4] rounded-lg mt-4 " />
+      )}
+
       {loadList.map((load, index) => (
-        <div className="">
+        <div className="flex flex-col items-center justify-center">
           <span
-            style={{ left: `${load.position}%` }}
-            className="text-[1.25rem] absolute -top-14 -ml-[12px]"
+            className={`text-[1.25rem] absolute -top-14 -ml-[12px] ${
+              load.src === "/images/udl.svg" ? "" : ""
+            }`}
+            style={{
+              left: `${load.position}%`,
+              width: load.src === "/images/udl.svg" ? `${load.length}%` : "",
+            }}
           >
             {load.loadValue}kN
           </span>
           <img
             key={index}
-            style={{ left: `${load.position}%` }}
+            style={{
+              left: `${load.position}%`,
+              width: load.src === "/images/udl.svg" ? `${load.length}%` : "",
+            }}
             className=" absolute -top-7 -ml-[12px] "
-            src={load.pointLoad}
+            src={load.src}
             alt=""
           />
         </div>
       ))}
-
       {/* {placeLoad === true && (
         <span
           style={{ left: `${loadPosition}%` }}
@@ -44,14 +56,27 @@ export default function BeamDiagram({
           src="/images/Point-load.svg"
           alt=""
         />
-      )} */}
+      )} item.src = "/images/fixed-support.svg"?*/}
 
       {supportsList.map((item, index) => (
         <img
           key={index}
           src={item.src}
           alt=""
-          style={{ left: `${item.position}%` }}
+          style={{
+            marginLeft:
+              item.src === "/images/fixed-support.svg"
+                ? "-29px"
+                : item.position === 100
+                ? "-24px"
+                : "none",
+            top: item.src === "/images/fixed-support.svg" ? "-5px" : "12px",
+            left: `${item.position}%`,
+            transform:
+              item.src === "/images/fixed-support.svg" && item.position === 100
+                ? "rotate(180deg)"
+                : "none",
+          }}
           className="absolute top-3 inset-0 -ml-[20px] h-[50px]"
         />
       ))}

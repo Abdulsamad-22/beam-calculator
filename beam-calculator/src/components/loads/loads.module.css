@@ -1,0 +1,48 @@
+.beamContainer {
+  width: 100%;
+  max-width: 600px;
+  margin: 2rem auto;
+  position: relative;
+}
+
+.beam {
+  height: 20px;
+  background: #6b7280;
+  border-radius: 3px;
+  position: relative;
+}
+
+.udlLoad {
+  position: absolute;
+  top: -40px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.udlArrow {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 15px solid #3b82f6;
+  position: relative;
+}
+
+.udlArrow::after {
+  content: "";
+  position: absolute;
+  left: 0px;
+  top: -30px;
+  height: 20px;
+  width: 2px;
+  background: #3b82f6;
+}
+
+.loadLabel {
+  text-align: center;
+  margin-top: -25px;
+  font-family: Arial, sans-serif;
+  color: #1e40af;
+  font-weight: bold;
+}

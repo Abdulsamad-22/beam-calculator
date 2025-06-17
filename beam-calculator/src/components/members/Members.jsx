@@ -1,11 +1,12 @@
 import { useState } from "react";
 
-export default function Members({ beam, setBeam }) {
+export default function Members({ beam, setBeam, setDrawBeam }) {
   const [beamLength, setBeamLength] = useState(false);
   function handleSubmit(e) {
     e.preventDefault();
     setBeam(beam);
     setBeamLength(false);
+    setDrawBeam(true);
     console.log(beam);
   }
   return (

@@ -8,28 +8,42 @@ const support = [
 
 export default function Supports({
   setPlaceSupport,
-  placeSupport,
   setPosition,
   position,
   supportsList,
   setSupportsList,
+  beam,
 }) {
   const [supports, setSupports] = useState(false);
   const [selectedSupport, setSelectedSupport] = useState("");
+  const [error, setError] = useState(null);
 
   function handlePosition(e) {
     e.preventDefault();
+    const positionValue = parseFloat((Number(position) / Number(beam)) * 100);
+    if (supportsList.some((item) => item.position === positionValue)) {
+      setError(`A support already exists at position ${positionValue}%`);
 
-    if (!selectedSupport || position === "") return;
+      if (
+        (selectedSupport === "/images/fixed-support.svg" && position !== 0) ||
+        position !== beam
+      ) {
+        setError("Fixed support only exist at the end of the beam");
+      }
+      return;
+    }
+
+    if (!selectedSupport || positionValue === "") return;
 
     const newSupport = {
       src: selectedSupport,
-      position: parseFloat(position),
+      position: positionValue,
     };
 
     setSupportsList((prev) => [...prev, newSupport]);
 
     setSelectedSupport(null);
+    setError(null);
     setPosition("");
     setSupports(false);
     setPlaceSupport(true);
@@ -77,6 +91,7 @@ export default function Supports({
               Ok
             </button>
           </div>
+          {error && <div className="text-red-500">{error}</div>}
         </form>
       )}
     </div>
