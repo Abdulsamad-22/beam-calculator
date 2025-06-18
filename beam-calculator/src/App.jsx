@@ -73,7 +73,11 @@ function App() {
           drawBeam={drawBeam}
         />
       </div>
-      <CalculationResult loadList={loadList} beam={beam} />
+      <CalculationResult
+        loadList={loadList}
+        supportsList={supportsList}
+        beam={beam}
+      />
     </div>
   );
 }

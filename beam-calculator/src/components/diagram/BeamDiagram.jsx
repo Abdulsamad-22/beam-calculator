@@ -5,12 +5,40 @@ export default function BeamDiagram({
   beam,
   drawBeam,
 }) {
-  const totalLoad = loadList.reduce(
-    (acc, load) => acc + Number(load.loadValue),
-    0
-  );
-  console.log(parseFloat((totalLoad * beam) / 8));
-  console.log("Total Load", totalLoad);
+  const indexToLabel = (index) => {
+    let label = "";
+    while (index >= 0) {
+      label = String.fromCharCode((index % 26) + 65) + label;
+      index = Math.floor(index / 26) - 1;
+    }
+    return label;
+  };
+
+  const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
+  const supportLength = (lastSupportPosition / 100) * beam;
+
+  loadList.map((load) => {
+    const perpDistance = supportLength - (load.position / 100) * beam;
+    const loads = load.loadValue;
+    const inputPosition = Math.round((load.position / 100) * beam);
+    const distanceFromLoad = supportLength - inputPosition;
+    const moment = load.loadValue * distanceFromLoad;
+    console.log(`
+      Loads: ${loads}, perpendiculatD: ${distanceFromLoad}, position input ${inputPosition} moment ${moment}`);
+  });
+
+  supportsList.map((item, index) => {
+    const label = indexToLabel(index);
+
+    const inputPosition = Math.round((item.position / 100) * beam);
+    const distanceFromEnd = beam - inputPosition;
+    const distanceFromLastSupport = supportLength - inputPosition;
+    const reaction = label + distanceFromLastSupport;
+
+    console.log(
+      `${label}: ${item.src}, position: ${item.position}, input position: ${inputPosition}, pDistance: ${distanceFromEnd}, Reaction ${reaction} fromLastSupport: ${distanceFromLastSupport}`
+    );
+  });
 
   return (
     <div className="relative w-[50%]">
