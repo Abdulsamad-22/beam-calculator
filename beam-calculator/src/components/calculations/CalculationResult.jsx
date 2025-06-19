@@ -116,7 +116,7 @@ export default function CalculationResult({
       </div>
       <ShearForceDiagram
         loadList={loadList}
-        supportsList={supportLength}
+        supportsList={supportsList}
         beamLength={beamLength}
       />
     </div>
