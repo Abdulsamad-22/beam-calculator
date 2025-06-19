@@ -2,7 +2,7 @@ export default function BeamDiagram({
   position,
   supportsList,
   loadList,
-  beam,
+  beamLength,
   drawBeam,
 }) {
   const indexToLabel = (index) => {
@@ -15,12 +15,12 @@ export default function BeamDiagram({
   };
 
   const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
-  const supportLength = (lastSupportPosition / 100) * beam;
+  const supportLength = (lastSupportPosition / 100) * beamLength;
 
   loadList.map((load) => {
-    const perpDistance = supportLength - (load.position / 100) * beam;
+    const perpDistance = supportLength - (load.position / 100) * beamLength;
     const loads = load.loadValue;
-    const inputPosition = Math.round((load.position / 100) * beam);
+    const inputPosition = Math.round((load.position / 100) * beamLength);
     const distanceFromLoad = supportLength - inputPosition;
     const moment = load.loadValue * distanceFromLoad;
     console.log(`
@@ -30,8 +30,8 @@ export default function BeamDiagram({
   supportsList.map((item, index) => {
     const label = indexToLabel(index);
 
-    const inputPosition = Math.round((item.position / 100) * beam);
-    const distanceFromEnd = beam - inputPosition;
+    const inputPosition = Math.round((item.position / 100) * beamLength);
+    const distanceFromEnd = beamLength - inputPosition;
     const distanceFromLastSupport = supportLength - inputPosition;
     const reaction = label + distanceFromLastSupport;
 

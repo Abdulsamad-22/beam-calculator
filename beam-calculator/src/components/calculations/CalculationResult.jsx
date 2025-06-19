@@ -1,15 +1,22 @@
-import { useState } from "react";
+import ShearForceDiagram from "../diagram/ShearForceDiagram";
 
-export default function CalculationResult({ beam, loadList, supportsList }) {
-  const [momentValue, setMomentValue] = useState("");
+export default function CalculationResult({
+  beamLength,
+  loadList,
+  supportsList,
+}) {
   const totalLoad = loadList.reduce(
     (acc, load) => acc + Number(load.loadValue),
     0
   );
   const v = totalLoad / 2;
-  const M = (totalLoad * beam) / 8;
+  const M = (totalLoad * beamLength) / 8;
   const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
-  const supportLength = (lastSupportPosition / 100) * beam;
+  const supportLength = (lastSupportPosition / 100) * beamLength;
+
+  const firstSupportPosition = supportsList[0]?.position;
+  const firstSupportDistance = (firstSupportPosition / 100) * beamLength;
+  const lastSupportDistance = supportLength - firstSupportDistance;
 
   const indexToLabel = (index) => {
     let label = "";
@@ -19,6 +26,21 @@ export default function CalculationResult({ beam, loadList, supportsList }) {
     }
     return label;
   };
+
+  let totalDownWardForces = 0;
+  const downWardForce = loadList.map((load, index) => {
+    const inputPosition = Math.round((load.position / 100) * beamLength);
+    const distanceFromLoad = supportLength - inputPosition;
+    const forces = Number(load.loadValue) * distanceFromLoad;
+    totalDownWardForces += forces; // Accumulate the total
+
+    return {
+      id: index,
+      position: inputPosition,
+      distance: distanceFromLoad,
+      value: forces.toFixed(2),
+    };
+  });
 
   return (
     <div>
@@ -34,15 +56,18 @@ export default function CalculationResult({ beam, loadList, supportsList }) {
       </div>
       {supportsList.map((item, index) => {
         const label = indexToLabel(index);
-        const inputPosition = Math.round((item.position / 100) * beam);
-        const distanceFromEnd = beam - inputPosition;
+        const inputPosition = Math.round((item.position / 100) * beamLength);
         const distanceFromLastSupport = supportLength - inputPosition;
         const reaction = label + distanceFromLastSupport;
-        const ReactionMoment =
-          distanceFromLastSupport === 0
-            ? totalLoad
-            : (totalLoad / distanceFromLastSupport).toFixed(2);
-        console.log(ReactionMoment);
+        const reactionMoment = totalDownWardForces / lastSupportDistance;
+        const endMoment = totalLoad - reactionMoment;
+
+        const reactionForce =
+          index === 0
+            ? reactionMoment
+            : index === supportsList.length - 1
+            ? endMoment
+            : 0;
         return (
           <div
             key={index}
@@ -53,18 +78,16 @@ export default function CalculationResult({ beam, loadList, supportsList }) {
               <li>Position: {inputPosition}m</li>
 
               <li>
-                Perpendicular distance to support B: {distanceFromLastSupport}m
+                Perpendicular distance to support B:
+                {distanceFromLastSupport < 0 ? 0 : distanceFromLastSupport}m
               </li>
               <li>Reaction force: {reaction} kN</li>
               <li>
-                Total reaction
-                {distanceFromLastSupport === 0
-                  ? totalLoad - ReactionMoment
-                  : ReactionMoment}
+                Reaction {reactionForce.toFixed(2)}
                 kN
               </li>
               <li>
-                Support type:{" "}
+                Support type:
                 <img src={item.src} alt="support" className="inline h-4" />
               </li>
             </ul>
@@ -72,26 +95,30 @@ export default function CalculationResult({ beam, loadList, supportsList }) {
         );
       })}
 
-      {loadList.map((load, index) => {
-        const inputPosition = Math.round((load.position / 100) * beam);
-        const distanceFromLoad = supportLength - inputPosition;
-        const moment = load.loadValue * distanceFromLoad;
+      <div>
+        <h3 className="font-bold mb-2">Reaction Calculations</h3>
 
-        return (
-          <div
-            className="bg-gray-100 rounded p-4"
-            key={index}
-            style={{ marginBottom: "1rem" }}
-          >
-            <p>
-              <strong>Load {index + 1}</strong>
-            </p>
-            <p className="text-sm">Value: {load.loadValue}</p>
-            <p className="text-sm">Distance from Support: {distanceFromLoad}</p>
-            <p className="text-sm">Moment: {moment}kNm</p>
-          </div>
-        );
-      })}
+        {/* Individual Moments */}
+        <div className="mb-4">
+          {downWardForce.map((m) => (
+            <div key={m.id} className="grid grid-cols-3 gap-4 mb-1 text-sm">
+              <div>Load at {m.position}m:</div>
+              <div>Arm: {m.distance}m</div>
+              <div>Moment: {m.value} kN·m</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Total Moment */}
+        <div className="font-bold border-t pt-2">
+          Total Moment: {totalDownWardForces.toFixed(2)} kN·m
+        </div>
+      </div>
+      <ShearForceDiagram
+        loadList={loadList}
+        supportsList={supportLength}
+        beamLength={beamLength}
+      />
     </div>
   );
 }

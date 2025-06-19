@@ -7,7 +7,7 @@ import BeamDiagram from "./components/diagram/BeamDiagram";
 import CalculationResult from "./components/calculations/CalculationResult";
 
 function App() {
-  const [beam, setBeam] = useState("");
+  const [beamLength, setBeamLength] = useState("");
   const [loadValue, setLoadValue] = useState("");
   const [placeSupport, setPlaceSupport] = useState(false);
   const [position, setPosition] = useState("");
@@ -25,11 +25,11 @@ function App() {
 
   function momentCalculation() {
     const v = totalLoad / 2;
-    const M = (totalLoad * beam) / 8;
+    const M = (totalLoad * beamLength) / 8;
     console.log("Shear force", v);
     console.log("moment", M);
     return { v, M };
-    setBeam("");
+    setBeamLength("");
     setLoadValue("");
   }
   return (
@@ -42,8 +42,8 @@ function App() {
           setPlaceSupport={setPlaceSupport}
           position={position}
           setPosition={setPosition}
-          beam={beam}
-          setBeam={setBeam}
+          beamLength={beamLength}
+          setBeamLength={setBeamLength}
         />
         <Loads
           loadValue={loadValue}
@@ -54,9 +54,13 @@ function App() {
           setPlaceLoad={setPlaceLoad}
           loadLength={loadLength}
           setLoadLength={setLoadLength}
-          beam={beam}
+          beamLength={beamLength}
         />
-        <Members beam={beam} setBeam={setBeam} setDrawBeam={setDrawBeam} />
+        <Members
+          beamLength={beamLength}
+          setBeamLength={setBeamLength}
+          setDrawBeam={setDrawBeam}
+        />
       </div>
       <button
         className="p-4 bg-[#4E66FF] text-[#fff] mt-4 rounded-lg"
@@ -69,14 +73,14 @@ function App() {
           loadList={loadList}
           supportsList={supportsList}
           position={position}
-          beam={beam}
+          beamLength={beamLength}
           drawBeam={drawBeam}
         />
       </div>
       <CalculationResult
         loadList={loadList}
         supportsList={supportsList}
-        beam={beam}
+        beamLength={beamLength}
       />
     </div>
   );

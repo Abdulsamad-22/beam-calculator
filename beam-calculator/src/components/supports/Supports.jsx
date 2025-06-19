@@ -12,7 +12,7 @@ export default function Supports({
   position,
   supportsList,
   setSupportsList,
-  beam,
+  beamLength,
 }) {
   const [supports, setSupports] = useState(false);
   const [selectedSupport, setSelectedSupport] = useState("");
@@ -20,13 +20,15 @@ export default function Supports({
 
   function handlePosition(e) {
     e.preventDefault();
-    const positionValue = parseFloat((Number(position) / Number(beam)) * 100);
+    const positionValue = parseFloat(
+      (Number(position) / Number(beamLength)) * 100
+    );
     if (supportsList.some((item) => item.position === positionValue)) {
       setError(`A support already exists at position ${positionValue}%`);
 
       if (
         (selectedSupport === "/images/fixed-support.svg" && position !== 0) ||
-        position !== beam
+        position !== beamLength
       ) {
         setError("Fixed support only exist at the end of the beam");
       }

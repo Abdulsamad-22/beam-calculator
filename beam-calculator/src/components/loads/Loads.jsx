@@ -11,13 +11,15 @@ export default function Loads({
   setPlaceLoad,
   loadLength,
   setLoadLength,
-  beam,
+  beamLength,
 }) {
   const [loads, setLoads] = useState(false);
   const [selectedLoad, setSelectedLoad] = useState(null);
   const [udlLength, setUdlLength] = useState(false);
 
-  const positionValue = parseFloat((Number(loadPosition) / Number(beam)) * 100);
+  const positionValue = parseFloat(
+    (Number(loadPosition) / Number(beamLength)) * 100
+  );
   function handleLoad(e) {
     e.preventDefault();
 
