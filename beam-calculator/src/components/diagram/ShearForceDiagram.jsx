@@ -1,50 +1,137 @@
 import { Chart } from "chart.js";
 import { Chart as ChartJS, defaults } from "chart.js/auto";
 import { Line } from "react-chartjs-2";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+ChartJS.register(ChartDataLabels);
 import { useEffect, useRef } from "react";
 
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
-function ShearForceDiagram() {
+
+export default function ShearForceDiagram({
+  beamLength,
+  supportsList,
+  loadList,
+}) {
+  const totalLoad = loadList.reduce(
+    (acc, load) => acc + Number(load.loadValue),
+    0
+  );
+
+  const loadPositions = loadList.map((load) =>
+    Math.round((load.position / 100) * beamLength)
+  );
   const chartRef = useRef(null);
+
+  const supportPositions = supportsList.map((support) =>
+    Math.round((support.position / 100) * beamLength)
+  );
+
+  const allPositions = Array.from(
+    new Set([...loadPositions, ...supportPositions])
+  );
+
+  const sortedPositions = allPositions.sort((a, b) => a - b);
+  console.log(sortedPositions);
+
+  const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
+  const supportLength = (lastSupportPosition / 100) * beamLength;
+
+  const firstSupportPosition = supportsList[0]?.position;
+  const firstSupportDistance = (firstSupportPosition / 100) * beamLength;
+  const lastSupportDistance = supportLength - firstSupportDistance;
+  let totalDownwardForces = 0;
+
+  const downWardForce = loadList.map((load, index) => {
+    const inputPosition = Math.round((load.position / 100) * beamLength);
+    const distanceFromLoad = supportLength - inputPosition;
+    const forces = Number(load.loadValue) * distanceFromLoad;
+    totalDownwardForces += forces; // Accumulate the total
+  });
+
+  const forces = [];
+
+  // Downward loads (negative)
+  loadList.forEach((load) => {
+    const inputPosition = Math.round((load.position / 100) * beamLength);
+    forces.push({
+      position: inputPosition,
+      value: -Number(load.loadValue), // negative forces
+      type: "load",
+    });
+  });
+
+  // Support reactions (positive)
+  supportsList.forEach((support, index) => {
+    const inputPosition = Math.round((support.position / 100) * beamLength);
+    const reactionMoment = totalDownwardForces / lastSupportDistance;
+    const endMoment = totalLoad - reactionMoment;
+
+    const reactionForce =
+      index === 0
+        ? reactionMoment
+        : index === supportsList.length - 1
+        ? endMoment
+        : 0;
+
+    forces.push({
+      position: inputPosition,
+      value: reactionForce, // positive forces
+      type: "support",
+    });
+  });
+
+  forces.sort((a, b) => a.position - b.position);
+
+  let currentShear = 0;
+  const shearValues = [];
+
+  forces.forEach((force) => {
+    currentShear += force.value;
+    shearValues.push({
+      position: force.position,
+      shear: currentShear,
+    });
+  });
+  const shearPoints = shearValues.map(({ position, shear }) => ({
+    x: position,
+    y: shear,
+  }));
 
   useEffect(() => {
     const ctx = chartRef.current.getContext("2d");
 
-    // Data matching your image (values in kN)
-    const data = {
-      positions: [0, 1, 2, 3, 5, 6, 9], // x-axis (meters)
-      shearValues: [0.8, 1.29, 0.6, 0.4, -5, -6, 0], // y-axis (kN)
-    };
-
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: data.positions.map((pos) => `${pos}m`),
         datasets: [
           {
             label: "Shear Force (kN)",
-            data: data.shearValues,
+            data: shearPoints,
             borderColor: "#3b82f6",
             borderWidth: 3,
-            stepped: "before", // Critical for correct steps
+            stepped: "before",
             fill: false,
             tension: 0,
           },
         ],
       },
       options: {
-        responsive: true,
+        responsive: false,
+        maintainAspectRatio: false,
         scales: {
           x: {
-            title: { display: true, text: "Position (m)" },
+            type: "linear",
+            display: false,
+            title: { display: true, text: "Position along Beam (m)" },
             grid: { color: "rgba(0,0,0,0.1)" },
           },
           y: {
             title: { display: true, text: "Shear Force (kN)" },
-            min: -7,
-            max: 2,
-            grid: { color: "rgba(0,0,0,0.1)" },
+            grid: {
+              color: (ctx) => (ctx.tick.value === 0 ? "#000000" : "#fff"),
+              lineWidth: (ctx) => (ctx.tick.value === 0 ? 2 : 1),
+            },
             ticks: {
               callback: (val) => `${val} kN`,
             },
@@ -53,100 +140,41 @@ function ShearForceDiagram() {
         plugins: {
           legend: { display: false },
           tooltip: {
+            enabled: false,
+            display: false,
             callbacks: {
               label: (ctx) => `${ctx.parsed.y} kN at ${ctx.label}`,
             },
           },
         },
+        datalabels: {
+          display: true,
+          color: "#000",
+          font: {
+            weight: "bold",
+          },
+          formatter: (value, context) => {
+            return value.y.toFixed(2);
+          },
+          align: "top",
+        },
       },
     });
+    return () => chart.destroy();
   }, []);
 
-  return <canvas ref={chartRef} className="w-full h-64" />;
+  return (
+    <div
+      className="relative"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        width: "100%",
+        justifyContent: "center",
+        marginBottom: "20px",
+      }}
+    >
+      <canvas ref={chartRef} width="1200px" height="300px" />
+    </div>
+  );
 }
-// export default function ShearForceDiagram({
-//   supportsList,
-//   loadList,
-//   beamLength,
-// }) {
-//   const chartRef = useRef(null);
-
-//   useEffect(() => {
-//     // 1. Calculate shear points
-//     const points = calculateShearPoints(supportsList, loadList, beamLength);
-
-//     // 2. Create chart
-//     const ctx = chartRef.current.getContext("2d");
-//     const chart = new Chart(ctx, {
-//       type: "line",
-//       data: {
-//         labels: points.map((p) => `${p.x}m`),
-//         datasets: [
-//           {
-//             label: "Shear Force",
-//             data: points.map((p) => p.y),
-//             borderColor: "#3b82f6",
-//             borderWidth: 2,
-//             tension: 0, // Critical for angular SFD!
-//             fill: {
-//               target: "origin",
-//               above: "rgba(59, 130, 246, 0.1)",
-//               below: "rgba(239, 68, 68, 0.1)",
-//             },
-//           },
-//         ],
-//       },
-//       options: {
-//         scales: {
-//           x: { title: { display: true, text: "Beam Length (m)" } },
-//           y: {
-//             title: { display: true, text: "Shear Force (kN)" },
-//             beginAtZero: false,
-//           },
-//         },
-//         plugins: {
-//           tooltip: {
-//             callbacks: {
-//               label: (ctx) => `${ctx.parsed.y} kN at ${ctx.label}`,
-//             },
-//           },
-//         },
-//       },
-//     });
-
-//     return () => chart.destroy();
-//   }, []);
-
-//   return <canvas ref={chartRef} />;
-// }
-
-// // Helper function
-// function calculateShearPoints(supports, loads, length) {
-//   const points = [{ x: 0, y: 0 }];
-//   let currentShear = 0;
-
-//   // Add reactions (jumps up)
-//   supports.forEach((support, i) => {
-//     const reactionForce =
-//       i === 0 ? 38.33 : i === support.length - 1 ? 11.67 : 0;
-//     // const reaction = i === 0 ? totalLoad / 2 : totalLoad / 2;
-//     currentShear += reactionForce;
-//     points.push({
-//       x: (support.position / 100) * length,
-//       y: currentShear,
-//     });
-//   });
-
-//   // Add loads (steps down)
-//   loads.forEach((load) => {
-//     currentShear -= load.loadValue;
-//     points.push({
-//       x: (load.position / 100) * length,
-//       y: currentShear,
-//     });
-//   });
-
-//   // End at zero
-//   points.push({ x: length, y: 0 });
-//   return points.sort((a, b) => a.x - b.x); // Ensure ordered by position
-// }

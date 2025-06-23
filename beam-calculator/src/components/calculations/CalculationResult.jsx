@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ShearForceDiagram from "../diagram/ShearForceDiagram";
 
 export default function CalculationResult({
@@ -17,6 +18,7 @@ export default function CalculationResult({
   const firstSupportPosition = supportsList[0]?.position;
   const firstSupportDistance = (firstSupportPosition / 100) * beamLength;
   const lastSupportDistance = supportLength - firstSupportDistance;
+  // const [totalDownWardForces, setTotaDownwardForces] = useState(0);
 
   const indexToLabel = (index) => {
     let label = "";
@@ -32,10 +34,12 @@ export default function CalculationResult({
     const inputPosition = Math.round((load.position / 100) * beamLength);
     const distanceFromLoad = supportLength - inputPosition;
     const forces = Number(load.loadValue) * distanceFromLoad;
+    // setTotaDownwardForces(totalDownWardForces + forces);
     totalDownWardForces += forces; // Accumulate the total
 
     return {
       id: index,
+      load: load.loadValue,
       position: inputPosition,
       distance: distanceFromLoad,
       value: forces.toFixed(2),
@@ -105,6 +109,7 @@ export default function CalculationResult({
               <div>Load at {m.position}m:</div>
               <div>Arm: {m.distance}m</div>
               <div>Moment: {m.value} kN·m</div>
+              <div>Load at {m.load}kN:</div>
             </div>
           ))}
         </div>

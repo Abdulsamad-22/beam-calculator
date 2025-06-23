@@ -17,6 +17,7 @@ function App() {
   const [placeLoad, setPlaceLoad] = useState(false);
   const [loadLength, setLoadLength] = useState("");
   const [drawBeam, setDrawBeam] = useState(false);
+  const [shearForce, setShearForce] = useState(false);
 
   const totalLoad = loadList.reduce(
     (acc, load) => acc + Number(load.loadValue),
@@ -28,6 +29,7 @@ function App() {
     const M = (totalLoad * beamLength) / 8;
     console.log("Shear force", v);
     console.log("moment", M);
+    setShearForce(true);
     return { v, M };
     setBeamLength("");
     setLoadValue("");
@@ -77,11 +79,13 @@ function App() {
           drawBeam={drawBeam}
         />
       </div>
-      <CalculationResult
-        loadList={loadList}
-        supportsList={supportsList}
-        beamLength={beamLength}
-      />
+      {shearForce === true && (
+        <CalculationResult
+          loadList={loadList}
+          supportsList={supportsList}
+          beamLength={beamLength}
+        />
+      )}
     </div>
   );
 }
