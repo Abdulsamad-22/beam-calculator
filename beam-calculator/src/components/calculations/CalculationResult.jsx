@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ShearForceDiagram from "../diagram/ShearForceDiagram";
+import BendingMomentDiagram from "../diagram/BendingMomentDiagram";
 
 export default function CalculationResult({
   beamLength,
@@ -18,7 +19,7 @@ export default function CalculationResult({
   const firstSupportPosition = supportsList[0]?.position;
   const firstSupportDistance = (firstSupportPosition / 100) * beamLength;
   const lastSupportDistance = supportLength - firstSupportDistance;
-  // const [totalDownWardForces, setTotaDownwardForces] = useState(0);
+  const [reactionMoment, setReactionMoment] = useState("");
 
   const indexToLabel = (index) => {
     let label = "";
@@ -120,6 +121,11 @@ export default function CalculationResult({
         </div>
       </div>
       <ShearForceDiagram
+        loadList={loadList}
+        supportsList={supportsList}
+        beamLength={beamLength}
+      />
+      <BendingMomentDiagram
         loadList={loadList}
         supportsList={supportsList}
         beamLength={beamLength}

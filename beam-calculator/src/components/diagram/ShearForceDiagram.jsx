@@ -161,7 +161,7 @@ export default function ShearForceDiagram({
       },
     });
     return () => chart.destroy();
-  }, []);
+  }, [loadList, supportsList]);
 
   return (
     <div
@@ -174,7 +174,7 @@ export default function ShearForceDiagram({
         marginBottom: "20px",
       }}
     >
-      <canvas ref={chartRef} width="1200px" height="300px" />
+      <canvas ref={chartRef} width="700px" height="300px" />
     </div>
   );
 }
