@@ -14,43 +14,93 @@ export default function BendingMomentDiagram({
     0
   );
 
-  const loadPositions = loadList.map((load) =>
-    Math.round((load.position / 100) * beamLength)
-  );
+  const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
+  const supportLength = (lastSupportPosition / 100) * beamLength;
 
-  const supportPositions = supportsList.map((support) =>
-    Math.round((support.position / 100) * beamLength)
-  );
+  const firstSupportPosition = supportsList[0]?.position;
+  const firstSupportDistance = (firstSupportPosition / 100) * beamLength;
+  const lastSupportDistance = supportLength - firstSupportDistance;
+  let totalDownwardForces = 0;
 
-  const allPositions = Array.from(
-    new Set([...loadPositions, ...supportPositions])
-  );
+  const downWardForce = loadList.map((load, index) => {
+    const inputPosition = Math.round((load.position / 100) * beamLength);
+    const distanceFromLoad = supportLength - inputPosition;
+    const forces = Number(load.loadValue) * distanceFromLoad;
+    totalDownwardForces += forces; // Accumulate the total
+  });
+  const reactionMoment = totalDownwardForces / lastSupportDistance;
+  const endMoment = totalLoad - reactionMoment;
 
-  const sortedPositions = allPositions.sort((a, b) => a - b);
+  const allForces = [
+    ...loadList.map((load) => ({
+      position: Math.round((load.position / 100) * beamLength),
+      value: -Number(load.loadValue),
+      type: "load",
+    })),
+    ...supportsList.map((support, index) => ({
+      position: Math.round((support.position / 100) * beamLength),
+
+      value:
+        index === 0
+          ? reactionMoment
+          : index === supportsList.length - 1
+          ? endMoment
+          : 0,
+      type: "support",
+    })),
+  ];
+
+  const positions = Array.from(
+    new Set([0, ...allForces.map((f) => Number(f.position))])
+  ).sort((a, b) => a - b);
+  console.log(positions);
+
+  const forceMap = {};
+  allForces.forEach((f) => {
+    if (!forceMap[f.position]) {
+      forceMap[f.position] = [];
+    }
+    forceMap[f.position].push(f);
+  });
+
+  let moment = 0;
+  const momentValues = [];
+
+  for (let i = 0; i < positions.length; i++) {
+    const currentPos = positions[i];
+    const nextPos = positions[i + 1];
+    momentValues.push({ position: currentPos, moment: moment });
+    if (!nextPos) break;
+
+    const activeForces = positions
+      .slice(0, i + 1)
+      .flatMap((pos) => forceMap[pos] || []);
+
+    const dx = nextPos - currentPos;
+    const momentThisSpan = activeForces.reduce(
+      (sum, f) => sum + f.value * (nextPos - currentPos),
+      0
+    );
+    moment += momentThisSpan;
+  }
+  const momentPoints = momentValues.map(({ position, moment }) => ({
+    x: position,
+    y: moment,
+  }));
 
   useEffect(() => {
     const ctx = chartRef.current.getContext("2d");
-    const shearData = {
-      positions: sortedPositions, // meters
-      values: [0, -90, -40, 0], // kN-m
-    };
-
-    const momentData = {
-      positions: shearData.positions,
-      values: [0],
-    };
 
     const chart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: shearData.positions,
         datasets: [
           {
             label: "Bending Moment (kN·m)",
-            data: shearData.values,
+            data: momentPoints,
             borderColor: "#10b981",
             borderWidth: 3,
-            tension: 0.1,
+            tension: 0,
             fill: false,
           },
         ],
@@ -59,16 +109,21 @@ export default function BendingMomentDiagram({
         responsive: true,
         scales: {
           x: {
-            title: { display: true, text: "Position (m)" },
+            type: "linear",
+            display: false,
+            title: { display: true, text: "Position along Beam (m)" },
           },
           y: {
             title: { display: true, text: "Moment (kN·m)" },
             grid: {
-              color: (ctx) => (ctx.tick.value === 0 ? "#000000" : "#fff"),
+              color: (ctx) => (ctx.tick.value === 0 ? "#444242" : "#fff"),
               lineWidth: (ctx) => (ctx.tick.value === 0 ? 2 : 1),
             },
             beginAtZero: false,
           },
+        },
+        plugins: {
+          legend: { display: false },
         },
       },
     });

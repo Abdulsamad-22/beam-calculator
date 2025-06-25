@@ -19,7 +19,7 @@ export default function CalculationResult({
   const firstSupportPosition = supportsList[0]?.position;
   const firstSupportDistance = (firstSupportPosition / 100) * beamLength;
   const lastSupportDistance = supportLength - firstSupportDistance;
-  const [reactionMoment, setReactionMoment] = useState("");
+  // const [reactionMoment, setReactionMoment] = useState("");
 
   const indexToLabel = (index) => {
     let label = "";

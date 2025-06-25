@@ -71,20 +71,6 @@ export default function BeamDiagram({
           />
         </div>
       ))}
-      {/* {placeLoad === true && (
-        <span
-          style={{ left: `${loadPosition}%` }}
-          className="text-3xl cursor-pointer absolute -top-3 -ml-[8px]"
-        >
-          &#x25BC
-        </span>
-
-        <img
-          className="h-10 w-20 absolute -top-6 -ml-[8px]"
-          src="/images/Point-load.svg"
-          alt=""
-        />
-      )} item.src = "/images/fixed-support.svg"?*/}
 
       {supportsList.map((item, index) => (
         <img
@@ -108,14 +94,6 @@ export default function BeamDiagram({
           className="absolute top-3 inset-0 -ml-[20px] h-[50px]"
         />
       ))}
-      {/* {placeSupport !== false && (
-        <img
-          style={{ left: `${position}%` }}
-          className="absolute -top-1 inset-0 -ml-[20px] h-[50px]"
-          src={selectedSupport}
-          alt=""
-        />
-      )} */}
     </div>
   );
 }
