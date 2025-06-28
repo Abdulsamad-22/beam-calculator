@@ -43,7 +43,7 @@ export default function ShearForceDiagram({
   let totalDownwardForces = 0;
 
   const downWardForce = loadList.map((load, index) => {
-    const inputPosition = Math.round((load.position / 100) * beamLength);
+    const inputPosition = Number((load.position / 100) * beamLength);
     const distanceFromLoad = supportLength - inputPosition;
     const forces = Number(load.loadValue) * distanceFromLoad;
     totalDownwardForces += forces; // Accumulate the total
@@ -61,14 +61,18 @@ export default function ShearForceDiagram({
     });
   });
 
+  console.log(forces);
+
   // Support reactions (positive)
   supportsList.forEach((support, index) => {
-    const inputPosition = Math.round((support.position / 100) * beamLength);
+    const inputPosition = Number((support.position / 100) * beamLength);
     const reactionMoment = totalDownwardForces / lastSupportDistance;
     const endMoment = totalLoad - reactionMoment;
 
     const reactionForce =
-      index === 0
+      supportsList.length === 1
+        ? totalLoad
+        : index === 0
         ? reactionMoment
         : index === supportsList.length - 1
         ? endMoment
@@ -81,7 +85,7 @@ export default function ShearForceDiagram({
     });
   });
 
-  forces.sort((a, b) => a.position - b.position);
+  forces.sort((a, b) => a.position - b.position); // where i need to fix for fixed supports
 
   let currentShear = 0;
   const shearValues = [];
@@ -90,7 +94,7 @@ export default function ShearForceDiagram({
     currentShear += force.value;
     shearValues.push({
       position: force.position,
-      shear: currentShear,
+      shear: currentShear.toFixed(2),
     });
   });
   const shearPoints = shearValues.map(({ position, shear }) => ({

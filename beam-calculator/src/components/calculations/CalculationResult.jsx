@@ -32,10 +32,9 @@ export default function CalculationResult({
 
   let totalDownWardForces = 0;
   const downWardForce = loadList.map((load, index) => {
-    const inputPosition = Math.round((load.position / 100) * beamLength);
+    const inputPosition = Number((load.position / 100) * beamLength);
     const distanceFromLoad = supportLength - inputPosition;
     const forces = Number(load.loadValue) * distanceFromLoad;
-    // setTotaDownwardForces(totalDownWardForces + forces);
     totalDownWardForces += forces; // Accumulate the total
 
     return {
@@ -61,14 +60,16 @@ export default function CalculationResult({
       </div>
       {supportsList.map((item, index) => {
         const label = indexToLabel(index);
-        const inputPosition = Math.round((item.position / 100) * beamLength);
+        const inputPosition = Number((item.position / 100) * beamLength);
         const distanceFromLastSupport = supportLength - inputPosition;
         const reaction = label + distanceFromLastSupport;
         const reactionMoment = totalDownWardForces / lastSupportDistance;
         const endMoment = totalLoad - reactionMoment;
 
         const reactionForce =
-          index === 0
+          supportsList.length === 1
+            ? totalLoad
+            : index === 0
             ? reactionMoment
             : index === supportsList.length - 1
             ? endMoment
@@ -107,8 +108,8 @@ export default function CalculationResult({
         <div className="mb-4">
           {downWardForce.map((m) => (
             <div key={m.id} className="grid grid-cols-3 gap-4 mb-1 text-sm">
-              <div>Load at {m.position}m:</div>
-              <div>Arm: {m.distance}m</div>
+              <div>Load at {m.position.toFixed(2)}m:</div>
+              <div>Arm: {m.distance.toFixed(2)}m</div>
               <div>Moment: {m.value} kN·m</div>
               <div>Load at {m.load}kN:</div>
             </div>

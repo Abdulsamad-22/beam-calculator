@@ -30,7 +30,7 @@ export default function BeamDiagram({
   supportsList.map((item, index) => {
     const label = indexToLabel(index);
 
-    const inputPosition = Math.round((item.position / 100) * beamLength);
+    const inputPosition = Number((item.position / 100) * beamLength);
     const distanceFromEnd = beamLength - inputPosition;
     const distanceFromLastSupport = supportLength - inputPosition;
     const reaction = label + distanceFromLastSupport;

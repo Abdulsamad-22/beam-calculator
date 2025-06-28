@@ -15,6 +15,15 @@ export default function BendingMomentDiagram({
   );
 
   const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
+
+  const lastLoadPosition = loadList[loadList.length - 1]?.position;
+  // console.log((lastLoadPosition / 100) * beamLength);
+  const firstLoadPosition = loadList[0]?.position;
+  // console.log((firstLoadPosition / 100) * beamLength);
+  // console.log(
+  //   (lastLoadPosition / 100) * beamLength -
+  //     (firstLoadPosition / 100) * beamLength
+  // );
   const supportLength = (lastSupportPosition / 100) * beamLength;
 
   const firstSupportPosition = supportsList[0]?.position;
@@ -23,8 +32,9 @@ export default function BendingMomentDiagram({
   let totalDownwardForces = 0;
 
   const downWardForce = loadList.map((load, index) => {
-    const inputPosition = Math.round((load.position / 100) * beamLength);
+    const inputPosition = Number((load.position / 100) * beamLength);
     const distanceFromLoad = supportLength - inputPosition;
+    console.log(distanceFromLoad);
     const forces = Number(load.loadValue) * distanceFromLoad;
     totalDownwardForces += forces; // Accumulate the total
   });
@@ -33,15 +43,17 @@ export default function BendingMomentDiagram({
 
   const allForces = [
     ...loadList.map((load) => ({
-      position: Math.round((load.position / 100) * beamLength),
+      position: Number((load.position / 100) * beamLength),
       value: -Number(load.loadValue),
       type: "load",
     })),
     ...supportsList.map((support, index) => ({
-      position: Math.round((support.position / 100) * beamLength),
+      position: Number((support.position / 100) * beamLength),
 
       value:
-        index === 0
+        supportsList.length === 1
+          ? totalLoad
+          : index === 0
           ? reactionMoment
           : index === supportsList.length - 1
           ? endMoment
@@ -69,7 +81,10 @@ export default function BendingMomentDiagram({
   for (let i = 0; i < positions.length; i++) {
     const currentPos = positions[i];
     const nextPos = positions[i + 1];
-    momentValues.push({ position: currentPos, moment: moment });
+    momentValues.push({
+      position: currentPos,
+      moment: moment.toFixed(2),
+    });
     if (!nextPos) break;
 
     const activeForces = positions
@@ -78,11 +93,12 @@ export default function BendingMomentDiagram({
 
     const dx = nextPos - currentPos;
     const momentThisSpan = activeForces.reduce(
-      (sum, f) => sum + f.value * (nextPos - currentPos),
+      (sum, f) => sum + f.value * dx,
       0
     );
     moment += momentThisSpan;
   }
+  console.log(momentValues);
   const momentPoints = momentValues.map(({ position, moment }) => ({
     x: position,
     y: moment,
@@ -146,145 +162,3 @@ export default function BendingMomentDiagram({
     </div>
   );
 }
-// export default function BendingMomentDiagram({
-//   beamLength,
-//   supportsList,
-//   loadList,
-// }) {
-//   const totalLoad = loadList.reduce(
-//     (acc, load) => acc + Number(load.loadValue),
-//     0
-//   );
-
-//   const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
-//   const supportLength = (lastSupportPosition / 100) * beamLength;
-
-//   const firstSupportPosition = supportsList[0]?.position;
-//   const firstSupportDistance = (firstSupportPosition / 100) * beamLength;
-//   const lastSupportDistance = supportLength - firstSupportDistance;
-//   let totalDownwardForces = 0;
-
-//   const downWardForce = loadList.map((load, index) => {
-//     const inputPosition = Math.round((load.position / 100) * beamLength);
-//     const distanceFromLoad = supportLength - inputPosition;
-//     const forces = Number(load.loadValue) * distanceFromLoad;
-//     totalDownwardForces += forces; // Accumulate the total
-//   });
-
-//   //   supportsList.forEach((support, index) => {
-//   //     const inputPosition = Math.round((support.position / 100) * beamLength);
-//   //
-
-//   //     const reactionForce =
-//   //       index === 0
-//   //         ? reactionMoment
-//   //         : index === supportsList.length - 1
-//   //         ? endMoment
-//   //         : 0;
-
-//   //     forces.push({
-//   //       position: inputPosition,
-//   //       value: reactionForce, // positive forces
-//   //       type: "support",
-//   //     });
-//   //   });
-//   const momentPoints = [];
-//   let currentMoment = 0;
-//   let lastPosition = 0;
-//   const forces = [];
-//   // Downward loads (negative)
-//   loadList.forEach((load) => {
-//     const inputPosition = Math.round((load.position / 100) * beamLength);
-//     forces.push({
-//       position: inputPosition,
-//       value: -Number(load.loadValue), // negative forces
-//       type: "load",
-//     });
-//   });
-
-//   // Support reactions (positive)
-//   supportsList.forEach((support, index) => {
-//     const inputPosition = Math.round((support.position / 100) * beamLength);
-//     const reactionMoment = totalDownwardForces / lastSupportDistance;
-//     const endMoment = totalLoad - reactionMoment;
-
-//     const reactionForce =
-//       index === 0
-//         ? reactionMoment
-//         : index === supportsList.length - 1
-//         ? endMoment
-//         : 0;
-
-//     forces.push({
-//       position: inputPosition,
-//       value: reactionForce, // positive forces
-//       type: "support",
-//     });
-//   });
-
-//   // Sort the events from left to right
-//   const sortedEvents = forces.sort((a, b) => a.position - b.position);
-
-//   // Calculate moment at each event position
-//   sortedEvents.forEach((event) => {
-//     const dx = forces.position - lastPosition;
-//     currentMoment += momentPoints.find((p) => p.x === lastPosition)?.y * dx;
-//     momentPoints.push({ x: event.position, y: currentMoment });
-//     lastPosition = forces.position;
-//   });
-//   const data = {
-//   positions: [0, 0, 3, 9, 11], // Add duplicate 0 position
-//   shearValues: [0, -30, 8.33, 20, 0] // Start at 0, then immediate drop
-// }
-
-//   const momentChartData = {
-//     datasets: [
-//       {
-//         label: "Bending Moment (kNm)",
-//         data:data.positions,
-//         borderColor: "#f59e0b",
-//         backgroundColor: "rgba(245, 158, 11, 0.2)",
-//         tension: 0.1,
-//         fill: false,
-//       },
-//     ],
-//   };
-
-//   const momentChartOptions = {
-//     responsive: true,
-//     plugins: {
-//       legend: { display: true },
-//       tooltip: {
-//         callbacks: {
-//           label: (ctx) =>
-//             `Moment: ${ctx.parsed.y.toFixed(2)} kNm at ${ctx.parsed.x} m`,
-//         },
-//       },
-//     },
-//     scales: {
-//       x: {
-//         type: "linear",
-//         title: {
-//           display: true,
-//           text: "Position (m)",
-//         },
-//       },
-//       y: {
-//         title: {
-//           display: true,
-//           text: "Bending Moment (kNm)",
-//         },
-//       },
-//     },
-//   };
-//   return (
-//     <div className="w-[800px]">
-//       <Line
-//         width="700px"
-//         height="300px"
-//         data={momentChartData}
-//         options={momentChartOptions}
-//       />
-//     </div>
-//   );
-// }
