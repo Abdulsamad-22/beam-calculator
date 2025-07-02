@@ -59,7 +59,7 @@ export default function Loads({
             onClick={() => handleLoading(load)}
             className="cursor-pointer"
           >
-            <img className="h-10" src={load} alt="" />
+            <img className="h-5" src={load} alt="" />
           </div>
         ))}
       </div>

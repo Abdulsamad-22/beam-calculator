@@ -7,10 +7,16 @@ export default function CalculationResult({
   loadList,
   supportsList,
 }) {
-  const totalLoad = loadList.reduce(
-    (acc, load) => acc + Number(load.loadValue),
-    0
-  );
+  const totalLoad = loadList.reduce((acc, load) => {
+    const isUDL = load.src === "/images/udl.svg";
+    const loadValue = isUDL
+      ? (Number(load.loadValue) * Number(load.length)) / 10 // convert UDL to point load
+      : Number(load.loadValue); // point load stays same
+
+    return acc + loadValue;
+  }, 0);
+
+  console.log(totalLoad);
   const v = totalLoad / 2;
   const M = (totalLoad * beamLength) / 8;
   const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
@@ -19,7 +25,6 @@ export default function CalculationResult({
   const firstSupportPosition = supportsList[0]?.position;
   const firstSupportDistance = (firstSupportPosition / 100) * beamLength;
   const lastSupportDistance = supportLength - firstSupportDistance;
-  // const [reactionMoment, setReactionMoment] = useState("");
 
   const indexToLabel = (index) => {
     let label = "";
@@ -31,16 +36,21 @@ export default function CalculationResult({
   };
 
   let totalDownWardForces = 0;
+
   const downWardForce = loadList.map((load, index) => {
     const inputPosition = Number((load.position / 100) * beamLength);
     const distanceFromLoad = supportLength - inputPosition;
-    const forces = Number(load.loadValue) * distanceFromLoad;
+    const isUDL = load.src === "/images/udl.svg";
+    const UDLPosition = (load.position + load.length) / 10;
+    const UDLRxN =
+      Number(load.loadValue) * Number(load.length / 10 / 2) * distanceFromLoad;
+    const forces = isUDL ? UDLRxN : Number(load.loadValue) * distanceFromLoad;
     totalDownWardForces += forces; // Accumulate the total
 
     return {
       id: index,
       load: load.loadValue,
-      position: inputPosition,
+      position: isUDL ? UDLPosition : inputPosition,
       distance: distanceFromLoad,
       value: forces.toFixed(2),
     };

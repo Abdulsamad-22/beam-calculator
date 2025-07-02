@@ -63,7 +63,7 @@ export default function Supports({
       <div className="flex items-center space-x-4">
         {support.map((supportSrc) => (
           <div key={supportSrc} onClick={() => handleSupport(supportSrc)}>
-            <img className="h-[40px] cursor-pointer" src={supportSrc} alt="" />
+            <img className="h-[24px] cursor-pointer" src={supportSrc} alt="" />
           </div>
         ))}
       </div>

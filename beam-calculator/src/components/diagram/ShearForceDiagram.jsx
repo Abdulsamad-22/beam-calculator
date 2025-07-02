@@ -13,18 +13,22 @@ export default function ShearForceDiagram({
   supportsList,
   loadList,
 }) {
-  const totalLoad = loadList.reduce(
-    (acc, load) => acc + Number(load.loadValue),
-    0
-  );
+  const totalLoad = loadList.reduce((acc, load) => {
+    const isUDL = load.src === "/images/udl.svg";
+    const loadValue = isUDL
+      ? (Number(load.loadValue) * Number(load.length)) / 10 // convert UDL to point load
+      : Number(load.loadValue); // point load stays same
+
+    return acc + loadValue;
+  }, 0);
 
   const loadPositions = loadList.map((load) =>
-    Math.round((load.position / 100) * beamLength)
+    Number((load.position / 100) * beamLength)
   );
   const chartRef = useRef(null);
 
   const supportPositions = supportsList.map((support) =>
-    Math.round((support.position / 100) * beamLength)
+    Number((support.position / 100) * beamLength)
   );
 
   const allPositions = Array.from(
@@ -45,8 +49,12 @@ export default function ShearForceDiagram({
   const downWardForce = loadList.map((load, index) => {
     const inputPosition = Number((load.position / 100) * beamLength);
     const distanceFromLoad = supportLength - inputPosition;
-    const forces = Number(load.loadValue) * distanceFromLoad;
+    const isUDL = load.src === "/images/udl.svg";
+    const UDLRxN =
+      Number(load.loadValue) * Number(load.length / 10 / 2) * distanceFromLoad;
+    const forces = isUDL ? UDLRxN : Number(load.loadValue) * distanceFromLoad;
     totalDownwardForces += forces; // Accumulate the total
+    console.log(load.length);
   });
 
   const forces = [];
@@ -54,9 +62,13 @@ export default function ShearForceDiagram({
   // Downward loads (negative)
   loadList.forEach((load) => {
     const inputPosition = Math.round((load.position / 100) * beamLength);
+    const isUDL = load.src === "/images/udl.svg";
+    const UDLPosition = (load.length + load.position) / 10;
     forces.push({
-      position: inputPosition,
-      value: -Number(load.loadValue), // negative forces
+      position: isUDL ? UDLPosition : inputPosition,
+      value: isUDL
+        ? (-Number(load.loadValue) * Number(load.length)) / 10 // convert UDL to point load
+        : -Number(load.loadValue),
       type: "load",
     });
   });
@@ -97,6 +109,7 @@ export default function ShearForceDiagram({
       shear: currentShear.toFixed(2),
     });
   });
+  console.log(shearValues);
   const shearPoints = shearValues.map(({ position, shear }) => ({
     x: position,
     y: shear,
@@ -115,7 +128,11 @@ export default function ShearForceDiagram({
             borderColor: "#3b82f6",
             borderWidth: 3,
             stepped: "before",
-            fill: false,
+            fill: {
+              target: "origin",
+              above: "rgba(16, 185, 129, 0.1)", // Green area for positive
+              below: "rgba(239, 68, 68, 0.1)", // Red area for negative
+            },
             tension: 0,
           },
         ],
@@ -151,17 +168,17 @@ export default function ShearForceDiagram({
             },
           },
         },
-        datalabels: {
-          display: true,
-          color: "#000",
-          font: {
-            weight: "bold",
-          },
-          formatter: (value, context) => {
-            return value.y.toFixed(2);
-          },
-          align: "top",
-        },
+        // datalabels: {
+        //   display: true,
+        //   color: "#000",
+        //   font: {
+        //     weight: "bold",
+        //   },
+        //   formatter: (value, context) => {
+        //     return value.y.toFixed(2);
+        //   },
+        //   align: "top",
+        // },
       },
     });
     return () => chart.destroy();

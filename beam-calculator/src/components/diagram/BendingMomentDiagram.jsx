@@ -17,13 +17,7 @@ export default function BendingMomentDiagram({
   const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
 
   const lastLoadPosition = loadList[loadList.length - 1]?.position;
-  // console.log((lastLoadPosition / 100) * beamLength);
   const firstLoadPosition = loadList[0]?.position;
-  // console.log((firstLoadPosition / 100) * beamLength);
-  // console.log(
-  //   (lastLoadPosition / 100) * beamLength -
-  //     (firstLoadPosition / 100) * beamLength
-  // );
   const supportLength = (lastSupportPosition / 100) * beamLength;
 
   const firstSupportPosition = supportsList[0]?.position;
@@ -40,6 +34,31 @@ export default function BendingMomentDiagram({
   });
   const reactionMoment = totalDownwardForces / lastSupportDistance;
   const endMoment = totalLoad - reactionMoment;
+
+  const fixedSupport = supportsList.find(
+    (s) => s.src === "/images/fixed-support.svg"
+  );
+
+  const isFixedAtStart = fixedSupport?.position === 0;
+
+  const fixedPosition = fixedSupport
+    ? Number((fixedSupport.position / 100) * beamLength)
+    : 0;
+
+  // const allPositions = [
+  //   ...loadList.map((load) => Math.round((load.position / 100) * beamLength)),
+  //   ...supportsList.map((support) =>
+  //     Math.round((support.position / 100) * beamLength)
+  //   ),
+  // ];
+
+  // if (!allPositions.includes(0)) allPositions.push(0);
+
+  // const positions = Array.from(new Set(allPositions)).sort((a, b) =>
+  //   isFixedAtStart ? b - a : a - b
+  // );
+
+  // const isFixedAtStart = fixedPosition === 0;
 
   const allForces = [
     ...loadList.map((load) => ({
@@ -61,9 +80,11 @@ export default function BendingMomentDiagram({
       type: "support",
     })),
   ];
+  console.log(allForces);
+  // if (!allForces.includes(0)) allForces.push(0);
 
   const positions = Array.from(
-    new Set([0, ...allForces.map((f) => Number(f.position))])
+    new Set([0, ...allForces.map((f) => f.position)])
   ).sort((a, b) => a - b);
   console.log(positions);
 
@@ -91,13 +112,24 @@ export default function BendingMomentDiagram({
       .slice(0, i + 1)
       .flatMap((pos) => forceMap[pos] || []);
 
+    // const activeForces = isFixedAtStart
+    //   ? positions.slice(0, i + 1).flatMap((pos) => forceMap[pos] || [])
+    //   : positions.slice(i + 1).flatMap((pos) => forceMap[pos] || []);
+
     const dx = nextPos - currentPos;
+
+    console.log(dx);
     const momentThisSpan = activeForces.reduce(
       (sum, f) => sum + f.value * dx,
       0
     );
+
+    // const activeForces = isFixedAtStart
+    //   ? positions.slice(i + 1).flatMap((pos) => forceMap[pos] || [])
+    //   : positions.slice(0, i + 1).flatMap((pos) => forceMap[pos] || []);
     moment += momentThisSpan;
   }
+
   console.log(momentValues);
   const momentPoints = momentValues.map(({ position, moment }) => ({
     x: position,
@@ -117,7 +149,11 @@ export default function BendingMomentDiagram({
             borderColor: "#10b981",
             borderWidth: 3,
             tension: 0,
-            fill: false,
+            fill: {
+              target: "origin",
+              above: "rgba(16, 185, 129, 0.1)", // Green area for positive
+              below: "rgba(239, 68, 68, 0.1)", // Red area for negative
+            },
           },
         ],
       },

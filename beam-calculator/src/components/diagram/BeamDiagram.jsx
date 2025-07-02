@@ -57,7 +57,8 @@ export default function BeamDiagram({
               width: load.src === "/images/udl.svg" ? `${load.length}%` : "",
             }}
           >
-            {load.loadValue}kN
+            {load.loadValue}
+            {load.src === "/images/udl.svg" ? "kN/m" : "kN"}
           </span>
           <img
             key={index}
