@@ -16,8 +16,8 @@ export default function ShearForceDiagram({
   const totalLoad = loadList.reduce((acc, load) => {
     const isUDL = load.src === "/images/udl.svg";
     const loadValue = isUDL
-      ? (Number(load.loadValue) * Number(load.length)) / 10 // convert UDL to point load
-      : Number(load.loadValue); // point load stays same
+      ? (Number(load.loadValue) * Number(load.length)) / 10 // Convert UDL to point load
+      : Number(load.loadValue); // Point load stays same
 
     return acc + loadValue;
   }, 0);
@@ -36,7 +36,6 @@ export default function ShearForceDiagram({
   );
 
   const sortedPositions = allPositions.sort((a, b) => a - b);
-  console.log(sortedPositions);
 
   const lastSupportPosition = supportsList[supportsList.length - 1]?.position;
   const supportLength = (lastSupportPosition / 100) * beamLength;
@@ -53,27 +52,54 @@ export default function ShearForceDiagram({
     const UDLRxN =
       Number(load.loadValue) * Number(load.length / 10 / 2) * distanceFromLoad;
     const forces = isUDL ? UDLRxN : Number(load.loadValue) * distanceFromLoad;
-    totalDownwardForces += forces; // Accumulate the total
-    console.log(load.length);
+    totalDownwardForces += forces; // Accumulate the total forces across beam
   });
 
   const forces = [];
+  let currentShear = 0;
+  const shearValues = [];
 
   // Downward loads (negative)
   loadList.forEach((load) => {
-    const inputPosition = Math.round((load.position / 100) * beamLength);
+    const inputPosition = Number((load.position / 100) * beamLength);
     const isUDL = load.src === "/images/udl.svg";
-    const UDLPosition = (load.length + load.position) / 10;
-    forces.push({
-      position: isUDL ? UDLPosition : inputPosition,
-      value: isUDL
-        ? (-Number(load.loadValue) * Number(load.length)) / 10 // convert UDL to point load
-        : -Number(load.loadValue),
-      type: "load",
-    });
-  });
+    const start = inputPosition;
+    const end = inputPosition + Number(load.length) / 10;
+    const udlMagnitude = Number(load.loadValue);
+    const totalLoad = (udlMagnitude * Number(load.length)) / 10;
 
-  console.log(forces);
+    if (isUDL) {
+      forces.push({
+        position: start,
+        value: 0, // No jump at start of UDL
+        type: "load",
+        isPointLoad: false,
+      });
+
+      // End of UDL – apply full load here as a drop
+      forces.push({
+        position: end,
+        value: -totalLoad,
+        type: "load",
+        isPointLoad: false,
+      });
+
+      forces.push({
+        position: end,
+        shear: currentShear.toFixed(2),
+        isPointLoad: true,
+      });
+    } else {
+      // Normal point load
+      forces.push({
+        position: inputPosition,
+        value: -udlMagnitude,
+        type: "load",
+        isPointLoad: true,
+      });
+    }
+    console.log(currentShear);
+  });
 
   // Support reactions (positive)
   supportsList.forEach((support, index) => {
@@ -92,28 +118,70 @@ export default function ShearForceDiagram({
 
     forces.push({
       position: inputPosition,
-      value: reactionForce, // positive forces
+      value: reactionForce, // Positive forces at supports
       type: "support",
+      isPointLoad: true,
     });
   });
 
-  forces.sort((a, b) => a.position - b.position); // where i need to fix for fixed supports
+  forces.sort((a, b) => a.position - b.position); // Where i need to fix for fixed supports
 
-  let currentShear = 0;
-  const shearValues = [];
+  forces.forEach((force) => {
+    const { position, value, isPointLoad } = force;
+
+    if (!isPointLoad) {
+      // UDL start (value is 0)
+      shearValues.push({
+        position: 2.5 + 0.001, // Test logic here
+        shear: currentShear.toFixed(2),
+        isPointLoad: false,
+      });
+      console.log(currentShear);
+      currentShear += value;
+
+      shearValues.push({
+        position,
+        shear: currentShear.toFixed(2),
+        isPointLoad: false,
+      });
+    } else {
+      const prevShear = currentShear;
+      console.log(prevShear);
+      // Point load
+      currentShear += value;
+      console.log(currentShear);
+      if (force.type === "support") {
+        shearValues.push({
+          position,
+          shear: prevShear.toFixed(2),
+          isPointLoad: true,
+        });
+      }
+      shearValues.push({
+        position,
+        shear: currentShear.toFixed(2),
+        isPointLoad: true,
+      });
+    }
+  });
 
   forces.forEach((force) => {
     currentShear += force.value;
     shearValues.push({
       position: force.position,
       shear: currentShear.toFixed(2),
+      isPointLoad: force.isPointLoad,
     });
   });
   console.log(shearValues);
-  const shearPoints = shearValues.map(({ position, shear }) => ({
-    x: position,
-    y: shear,
-  }));
+
+  const pointLoadData = shearValues
+    .filter((p) => p.isPointLoad)
+    .map(({ position, shear }) => ({ x: position, y: parseFloat(shear) }));
+
+  const udlData = shearValues
+    .filter((p) => !p.isPointLoad)
+    .map(({ position, shear }) => ({ x: position, y: parseFloat(shear) }));
 
   useEffect(() => {
     const ctx = chartRef.current.getContext("2d");
@@ -124,7 +192,7 @@ export default function ShearForceDiagram({
         datasets: [
           {
             label: "Shear Force (kN)",
-            data: shearPoints,
+            data: pointLoadData,
             borderColor: "#3b82f6",
             borderWidth: 3,
             stepped: "before",
@@ -133,6 +201,15 @@ export default function ShearForceDiagram({
               above: "rgba(16, 185, 129, 0.1)", // Green area for positive
               below: "rgba(239, 68, 68, 0.1)", // Red area for negative
             },
+            tension: 0,
+          },
+          {
+            label: "UDL",
+            data: udlData,
+            borderColor: "#3b82f6",
+            borderWidth: 3,
+            stepped: false, // Sloped lines for UDL
+            fill: false,
             tension: 0,
           },
         ],
